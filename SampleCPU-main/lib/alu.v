@@ -1,5 +1,5 @@
 `include "defines.vh"
-module alu(
+ module alu(
     input wire [11:0] alu_control,
     input wire [31:0] alu_src1,
     input wire [31:0] alu_src2,

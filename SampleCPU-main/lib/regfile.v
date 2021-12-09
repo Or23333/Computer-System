@@ -9,6 +9,8 @@ module regfile(
     input wire we,
     input wire [4:0] waddr,
     input wire [31:0] wdata
+    
+
 );
     reg [31:0] reg_array [31:0];
     // write
