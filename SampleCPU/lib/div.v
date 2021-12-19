@@ -21,23 +21,23 @@
 
 
 module div(
-	input wire rst,							//ï¿½ï¿½Î»
-	input wire clk,							//Ê±ï¿½ï¿½
-	input wire signed_div_i,						//ï¿½Ç·ï¿½Îªï¿½Ð·ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬1Î»ï¿½Ð·ï¿½ï¿½ï¿½
-	input wire[31:0] opdata1_i,				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	input wire[31:0] opdata2_i,				//ï¿½ï¿½ï¿½ï¿½
-	input wire start_i,						//ï¿½Ç·ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	input wire annul_i,						//ï¿½Ç·ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬1Î»È¡ï¿½ï¿½
-	output reg[63:0] result_o,				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	output reg ready_o						//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
+	input wire rst,							//¸´Î»
+	input wire clk,							//Ê±ÖÓ
+	input wire signed_div_i,						//ÊÇ·ñÎªÓÐ·ûºÅ³ý·¨ÔËËã£¬1Î»ÓÐ·ûºÅ
+	input wire[31:0] opdata1_i,				//±»³ýÊý
+	input wire[31:0] opdata2_i,				//³ýÊý
+	input wire start_i,						//ÊÇ·ñ¿ªÊ¼³ý·¨ÔËËã
+	input wire annul_i,						//ÊÇ·ñÈ¡Ïû³ý·¨ÔËËã£¬1Î»È¡Ïû
+	output reg[63:0] result_o,				//³ý·¨ÔËËã½á¹û
+	output reg ready_o						//³ý·¨ÔËËãÊÇ·ñ½áÊø
 	
 );
 	
 	wire [32:0] div_temp;
-	reg [5:0] cnt;							//ï¿½ï¿½Â¼ï¿½ï¿½ï¿½Ì·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¼ï¿½ï¿½ï¿½
-	reg[64:0] dividend;						//ï¿½ï¿½32Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½kï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½dividend[k:0]ï¿½ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½Çµï¿½Ç°ï¿½Ãµï¿½ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½ï¿½
-											//dividend[31:k+1]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½Ö£ï¿½dividend[63:32]ï¿½ï¿½Ã¿ï¿½Îµï¿½ï¿½ï¿½Ê±ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½
-	reg [1:0] state;						//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½×´Ì¬	
+	reg [5:0] cnt;							//¼ÇÂ¼ÊÔÉÌ·¨½øÐÐÁË¼¸ÂÖ
+	reg[64:0] dividend;						//µÍ32Î»±£´æ³ýÊý¡¢ÖÐ¼ä½á¹û£¬µÚk´Îµü´ú½áÊøµÄÊ±ºòdividend[k:0]±£´æµÄ¾ÍÊÇµ±Ç°µÃµ½µÄÖÐ¼ä½á¹û£¬
+											//dividend[31:k+1]±£´æµÄÊÇ±»³ýÊýÃ»ÓÐ²ÎÓëÔËËãµÄ²¿·Ö£¬dividend[63:32]ÊÇÃ¿´Îµü´úÊ±µÄ±»¼õÊý
+	reg [1:0] state;						//³ý·¨Æ÷´¦ÓÚµÄ×´Ì¬	
 	reg[31:0] divisor;
 	reg[31:0] temp_op1;
 	reg[31:0] temp_op2;
@@ -53,19 +53,19 @@ module div(
 		end else begin
 			case(state)
 			
-				`DivFree: begin			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				`DivFree: begin			//³ý·¨Æ÷¿ÕÏÐ
 					if (start_i == `DivStart && annul_i == 1'b0) begin
-						if(opdata2_i == `ZeroWord) begin			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª0
+						if(opdata2_i == `ZeroWord) begin			//Èç¹û³ýÊýÎª0
 							state <= `DivByZero;
 						end else begin
-							state <= `DivOn;					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª0
+							state <= `DivOn;					//³ýÊý²»Îª0
 							cnt <= 6'b000000;
-							if(signed_div_i == 1'b1 && opdata1_i[31] == 1'b1) begin			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
+							if(signed_div_i == 1'b1 && opdata1_i[31] == 1'b1) begin			//±»³ýÊýÎª¸ºÊý
 								temp_op1 = ~opdata1_i + 1;
 							end else begin
 								temp_op1 = opdata1_i;
 							end
-							if (signed_div_i == 1'b1 && opdata2_i[31] == 1'b1 ) begin			//ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
+							if (signed_div_i == 1'b1 && opdata2_i[31] == 1'b1 ) begin			//³ýÊýÎª¸ºÊý
 								temp_op2 = ~opdata2_i + 1;
 							end else begin
 								temp_op2 = opdata2_i;
@@ -80,20 +80,20 @@ module div(
 					end
 				end
 				
-				`DivByZero: begin			//ï¿½ï¿½ï¿½ï¿½Îª0
+				`DivByZero: begin			//³ýÊýÎª0
 					dividend <= {`ZeroWord, `ZeroWord};
 					state <= `DivEnd;
 				end
 				
-				`DivOn: begin				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª0
-					if(annul_i == 1'b0) begin			//ï¿½ï¿½ï¿½Ð³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				`DivOn: begin				//³ýÊý²»Îª0
+					if(annul_i == 1'b0) begin			//½øÐÐ³ý·¨ÔËËã
 						if(cnt != 6'b100000) begin
 							if (div_temp[32] == 1'b1) begin
 								dividend <= {dividend[63:0],1'b0};
 							end else begin
 								dividend <= {div_temp[31:0],dividend[31:0], 1'b1};
 							end
-							cnt <= cnt +1;		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+							cnt <= cnt +1;		//³ý·¨ÔËËã´ÎÊý
 						end	else begin
 							if ((signed_div_i == 1'b1) && ((opdata1_i[31] ^ opdata2_i[31]) == 1'b1)) begin
 								dividend[31:0] <= (~dividend[31:0] + 1);
@@ -109,7 +109,7 @@ module div(
 					end
 				end
 				
-				`DivEnd: begin			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				`DivEnd: begin			//³ý·¨½áÊø
 					result_o <= {dividend[64:33], dividend[31:0]};
 					ready_o <= `DivResultReady;
 					if (start_i == `DivStop) begin

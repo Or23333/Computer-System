@@ -2,14 +2,10 @@
 module MEM(
     input wire clk,
     input wire rst,
-    // input wire flush,
     input wire [`StallBus-1:0] stall,
-
     input wire [`EX_TO_MEM_WD-1+64+1+2+32:0] ex_to_mem_bus,
     input wire [31:0] data_sram_rdata,
-
     output wire [`MEM_TO_WB_WD-1+64+1+2:0] mem_to_wb_bus,
-    //����
     output wire [37+64+1+2:0] mem_to_id_bus
 );
 
@@ -19,9 +15,6 @@ module MEM(
         if (rst) begin
             ex_to_mem_bus_r <= `EX_TO_MEM_WD+64+1+2+32'b0;
         end
-        // else if (flush) begin
-        //     ex_to_mem_bus_r <= `EX_TO_MEM_WD'b0;
-        // end
         else if (stall[3]==`Stop && stall[4]==`NoStop) begin
             ex_to_mem_bus_r <= `EX_TO_MEM_WD+64+1+2+32'b0;
         end
@@ -80,7 +73,7 @@ module MEM(
 
     assign mem_to_wb_bus = {
         mt_flag,
-        div_flag,         
+        div_flag,          
         div_result,      
         mem_pc,     // 69:38
         rf_we,      // 37

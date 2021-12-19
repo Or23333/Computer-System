@@ -2,13 +2,9 @@
 module WB(
     input wire clk,
     input wire rst,
-    // input wire flush,
     input wire [`StallBus-1:0] stall,
-
     input wire [`MEM_TO_WB_WD-1+64+1+2:0] mem_to_wb_bus,
-
     output wire [`WB_TO_RF_WD-1+64+1+2:0] wb_to_rf_bus,
-
     output wire [31:0] debug_wb_pc,
     output wire [3:0] debug_wb_rf_wen,
     output wire [4:0] debug_wb_rf_wnum,
@@ -23,9 +19,6 @@ module WB(
         if (rst) begin
             mem_to_wb_bus_r <= `MEM_TO_WB_WD+64+1+2'b0;
         end
-        // else if (flush) begin
-        //     mem_to_wb_bus_r <= `MEM_TO_WB_WD'b0;
-        // end
         else if (stall[4]==`Stop && stall[5]==`NoStop) begin
             mem_to_wb_bus_r <= `MEM_TO_WB_WD+64+1+2'b0;
         end
@@ -38,7 +31,6 @@ module WB(
     wire rf_we;
     wire [4:0] rf_waddr;
     wire [31:0] rf_wdata;
-    
     wire div_flag;
     wire [63:0] div_result;
     wire [1:0] mt_flag;
