@@ -7,14 +7,14 @@ module EX(
 
     input wire [`ID_TO_EX_WD-1+64:0] id_to_ex_bus,
 
-    output wire [`EX_TO_MEM_WD-1+64+1:0] ex_to_mem_bus,
+    output wire [`EX_TO_MEM_WD-1+64+1+2+32:0] ex_to_mem_bus,
 
     output wire data_sram_en,
     output wire [3:0] data_sram_wen,
     output wire [31:0] data_sram_addr,
     output wire [31:0] data_sram_wdata,
-    //自己加的
-    output wire [37+64+1:0] ex_to_id_bus,
+    //�Լ��ӵ�
+    output wire [37+64+1+2:0] ex_to_id_bus,
     output wire ex_is_load,
     output wire stallreq_for_ex
 );
@@ -95,28 +95,46 @@ module EX(
     assign ex_result = (inst[31:26]==6'b000000 & inst[5:0]==6'b010010) ? LO 
     : (inst[31:26]==6'b000000 & inst[5:0]==6'b010000) ? HI : alu_result;
 
-    
+    wire [31:0] rf_rdata22; 
+    assign rf_rdata22 = inst[31:26]==6'b101000 ? {4{rf_rdata2[7:0]}}
+    : inst[31:26]==6'b101001 ? {2{rf_rdata2[15:0]}}
+    : rf_rdata2;
+    wire [3:0] data_ram_wen2;
+    assign data_ram_wen2 = (inst[31:26]==6'b101000) ? ( (ex_result[1]==1'b0 & ex_result[0]==1'b0) ? 4'b0001
+    : (ex_result[0]==1'b1 & ex_result[1]==1'b0) ? 4'b0010
+    : (ex_result[0]==1'b0 & ex_result[1]==1'b1) ? 4'b0100
+    : (ex_result[0]==1'b1 & ex_result[1]==1'b1) ? 4'b1000
+    : data_ram_wen )
+    : (inst[31:26]==6'b101001) ? ( ex_result[1]==1'b0 ? 4'b0011
+    : ex_result[1]==1'b1 ? 4'b1100
+    : data_ram_wen )
+    : data_ram_wen;
     
     assign data_sram_en = data_ram_en;
-    assign data_sram_wen = data_ram_wen;
+    assign data_sram_wen = data_ram_wen2;
     assign data_sram_addr = ex_result;
-    assign data_sram_wdata = rf_rdata2;
+    assign data_sram_wdata = rf_rdata22;
     
     // MUL part
     wire mul_flag;
     wire [63:0] mul_result;
-    wire mul_signed; // 有符号乘法标记
+    wire mul_signed; // �з��ų˷����
+    wire [31:0]alu_src11;
+    wire [31:0]alu_src22;
     assign inst_mult = (inst[31:26]==6'b000000 & inst[5:0]==6'b011000) ? 1'b1 : 1'b0;
     assign inst_multu = (inst[31:26]==6'b000000 & inst[5:0]==6'b011001) ? 1'b1 : 1'b0;
     assign mul_flag = inst_mult | inst_multu ;
     assign mul_signed = inst_mult;
+    assign alu_src11 = mul_flag ? alu_src1 : 32'b0;
+    
+    assign alu_src22 = mul_flag ? alu_src2 : 32'b0;
     mul u_mul(
     	.clk        (clk            ),
         .resetn     (~rst           ),
         .mul_signed (mul_signed     ),
-        .ina        (alu_src1      ), // 乘法源操作数1
-        .inb        (alu_src2      ), // 乘法源操作数2
-        .result     (mul_result     ) // 乘法结果 64bit
+        .ina        (alu_src11      ), // �˷�Դ������1
+        .inb        (alu_src22      ), // �˷�Դ������2
+        .result     (mul_result     ) // �˷���� 64bit
     );
 
     // DIV part
@@ -144,7 +162,7 @@ module EX(
         .opdata2_i    (div_opdata2_o    ),
         .start_i      (div_start_o      ),
         .annul_i      (1'b0      ),
-        .result_o     (div_result     ), // 除法结果 64bit
+        .result_o     (div_result     ), // ������� 64bit
         .ready_o      (div_ready_i      )
     );
 
@@ -216,29 +234,37 @@ module EX(
     end
     
     wire flag;
+    wire[1:0] mt_flag;
     wire [63:0] result;
+    wire [31:0] ex_result2;
+    assign mt_flag[0] = (inst[31:26] == 6'b000000 & inst[5:0] == 6'b010011) ? 1'b1 : 1'b0; //lo
+    assign mt_flag[1] = (inst[31:26] == 6'b000000 & inst[5:0] == 6'b010001) ? 1'b1 : 1'b0;  //hi
     assign flag = mul_flag | div_flag ;
     assign result = mul_flag ? mul_result : div_flag ? div_result : 64'b0 ;
-    // mul_result 和 div_result 可以直接使用
+    assign ex_result2 = ( mt_flag[0] | mt_flag[1] ) ? rf_rdata1 : ex_result;
+    // mul_result �� div_result ����ֱ��ʹ��
     assign ex_to_mem_bus = {
-        flag,         // 107
-        result,      //106:76
+        mt_flag,     //2
+        flag,         
+        result,
+        inst,      
         ex_pc,          // 75:44
         data_ram_en,    // 43
         data_ram_wen,   // 42:39
         sel_rf_res,     // 38
         rf_we,          // 37
         rf_waddr,       // 36:32
-        ex_result       // 31:0
+        ex_result2       // 31:0
     };
     assign ex_to_id_bus={
 //        hi_wen,         
 //        lo_wen,         
 //        div_result,
+        mt_flag,
         flag,         
         result,      
         rf_we,
         rf_waddr,
-        ex_result
+        ex_result2
     };
 endmodule
