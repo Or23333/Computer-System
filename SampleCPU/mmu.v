@@ -1,4 +1,3 @@
-
 `include "defines.vh"
 module mmu (
     input wire[31:0] addr_i,

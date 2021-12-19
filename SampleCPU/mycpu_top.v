@@ -54,7 +54,4 @@ module mycpu_top(
         .addr_o (data_sram_addr   )
     );
     
-    
-    
-    
 endmodule 
