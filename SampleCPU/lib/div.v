@@ -21,23 +21,23 @@
 
 
 module div(
-	input wire rst,							//¸´Î»
-	input wire clk,							//Ê±ÖÓ
-	input wire signed_div_i,						//ÊÇ·ñÎªÓĞ·ûºÅ³ı·¨ÔËËã£¬1Î»ÓĞ·ûºÅ
-	input wire[31:0] opdata1_i,				//±»³ıÊı
-	input wire[31:0] opdata2_i,				//³ıÊı
-	input wire start_i,						//ÊÇ·ñ¿ªÊ¼³ı·¨ÔËËã
-	input wire annul_i,						//ÊÇ·ñÈ¡Ïû³ı·¨ÔËËã£¬1Î»È¡Ïû
-	output reg[63:0] result_o,				//³ı·¨ÔËËã½á¹û
-	output reg ready_o						//³ı·¨ÔËËãÊÇ·ñ½áÊø
+	input wire rst,							//å¤ä½
+	input wire clk,							//æ—¶é’Ÿ
+	input wire signed_div_i,						//æ˜¯å¦ä¸ºæœ‰ç¬¦å·é™¤æ³•è¿ç®—ï¼Œ1ä½æœ‰ç¬¦å·
+	input wire[31:0] opdata1_i,				//è¢«é™¤æ•°
+	input wire[31:0] opdata2_i,				//é™¤æ•°
+	input wire start_i,						//æ˜¯å¦å¼€å§‹é™¤æ³•è¿ç®—
+	input wire annul_i,						//æ˜¯å¦å–æ¶ˆé™¤æ³•è¿ç®—ï¼Œ1ä½å–æ¶ˆ
+	output reg[63:0] result_o,				//é™¤æ³•è¿ç®—ç»“æœ
+	output reg ready_o						//é™¤æ³•è¿ç®—æ˜¯å¦ç»“æŸ
 	
 );
 	
 	wire [32:0] div_temp;
-	reg [5:0] cnt;							//¼ÇÂ¼ÊÔÉÌ·¨½øĞĞÁË¼¸ÂÖ
-	reg[64:0] dividend;						//µÍ32Î»±£´æ³ıÊı¡¢ÖĞ¼ä½á¹û£¬µÚk´Îµü´ú½áÊøµÄÊ±ºòdividend[k:0]±£´æµÄ¾ÍÊÇµ±Ç°µÃµ½µÄÖĞ¼ä½á¹û£¬
-											//dividend[31:k+1]±£´æµÄÊÇ±»³ıÊıÃ»ÓĞ²ÎÓëÔËËãµÄ²¿·Ö£¬dividend[63:32]ÊÇÃ¿´Îµü´úÊ±µÄ±»¼õÊı
-	reg [1:0] state;						//³ı·¨Æ÷´¦ÓÚµÄ×´Ì¬	
+	reg [5:0] cnt;							//è®°å½•è¯•å•†æ³•è¿›è¡Œäº†å‡ è½®
+	reg[64:0] dividend;						//ä½32ä½ä¿å­˜é™¤æ•°ã€ä¸­é—´ç»“æœï¼Œç¬¬kæ¬¡è¿­ä»£ç»“æŸçš„æ—¶å€™dividend[k:0]ä¿å­˜çš„å°±æ˜¯å½“å‰å¾—åˆ°çš„ä¸­é—´ç»“æœï¼Œ
+											//dividend[31:k+1]ä¿å­˜çš„æ˜¯è¢«é™¤æ•°æ²¡æœ‰å‚ä¸è¿ç®—çš„éƒ¨åˆ†ï¼Œdividend[63:32]æ˜¯æ¯æ¬¡è¿­ä»£æ—¶çš„è¢«å‡æ•°
+	reg [1:0] state;						//é™¤æ³•å™¨å¤„äºçš„çŠ¶æ€	
 	reg[31:0] divisor;
 	reg[31:0] temp_op1;
 	reg[31:0] temp_op2;
@@ -53,19 +53,19 @@ module div(
 		end else begin
 			case(state)
 			
-				`DivFree: begin			//³ı·¨Æ÷¿ÕÏĞ
+				`DivFree: begin			//é™¤æ³•å™¨ç©ºé—²
 					if (start_i == `DivStart && annul_i == 1'b0) begin
-						if(opdata2_i == `ZeroWord) begin			//Èç¹û³ıÊıÎª0
+						if(opdata2_i == `ZeroWord) begin			//å¦‚æœé™¤æ•°ä¸º0
 							state <= `DivByZero;
 						end else begin
-							state <= `DivOn;					//³ıÊı²»Îª0
+							state <= `DivOn;					//é™¤æ•°ä¸ä¸º0
 							cnt <= 6'b000000;
-							if(signed_div_i == 1'b1 && opdata1_i[31] == 1'b1) begin			//±»³ıÊıÎª¸ºÊı
+							if(signed_div_i == 1'b1 && opdata1_i[31] == 1'b1) begin			//è¢«é™¤æ•°ä¸ºè´Ÿæ•°
 								temp_op1 = ~opdata1_i + 1;
 							end else begin
 								temp_op1 = opdata1_i;
 							end
-							if (signed_div_i == 1'b1 && opdata2_i[31] == 1'b1 ) begin			//³ıÊıÎª¸ºÊı
+							if (signed_div_i == 1'b1 && opdata2_i[31] == 1'b1 ) begin			//é™¤æ•°ä¸ºè´Ÿæ•°
 								temp_op2 = ~opdata2_i + 1;
 							end else begin
 								temp_op2 = opdata2_i;
@@ -80,20 +80,20 @@ module div(
 					end
 				end
 				
-				`DivByZero: begin			//³ıÊıÎª0
+				`DivByZero: begin			//é™¤æ•°ä¸º0
 					dividend <= {`ZeroWord, `ZeroWord};
 					state <= `DivEnd;
 				end
 				
-				`DivOn: begin				//³ıÊı²»Îª0
-					if(annul_i == 1'b0) begin			//½øĞĞ³ı·¨ÔËËã
+				`DivOn: begin				//é™¤æ•°ä¸ä¸º0
+					if(annul_i == 1'b0) begin			//è¿›è¡Œé™¤æ³•è¿ç®—
 						if(cnt != 6'b100000) begin
 							if (div_temp[32] == 1'b1) begin
 								dividend <= {dividend[63:0],1'b0};
 							end else begin
 								dividend <= {div_temp[31:0],dividend[31:0], 1'b1};
 							end
-							cnt <= cnt +1;		//³ı·¨ÔËËã´ÎÊı
+							cnt <= cnt +1;		//é™¤æ³•è¿ç®—æ¬¡æ•°
 						end	else begin
 							if ((signed_div_i == 1'b1) && ((opdata1_i[31] ^ opdata2_i[31]) == 1'b1)) begin
 								dividend[31:0] <= (~dividend[31:0] + 1);
@@ -109,7 +109,7 @@ module div(
 					end
 				end
 				
-				`DivEnd: begin			//³ı·¨½áÊø
+				`DivEnd: begin			//é™¤æ³•ç»“æŸ
 					result_o <= {dividend[64:33], dividend[31:0]};
 					ready_o <= `DivResultReady;
 					if (start_i == `DivStop) begin
